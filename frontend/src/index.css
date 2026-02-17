@@ -1,0 +1,42 @@
+@import "tailwindcss";
+
+/* Base styles to ensure text is visible */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: #1f2937;
+  background-color: #f9fafb;
+}
+
+input, textarea, select {
+  font-family: inherit;
+  color: #1f2937;
+}
+
+input::placeholder, textarea::placeholder {
+  color: #9ca3af;
+}
+
+/* Ensure labels are visible */
+label {
+  color: #374151;
+}
+
+/* Ensure headings are visible */
+h1, h2, h3, h4, h5, h6 {
+  color: #111827;
+}
+
+/* Ensure buttons have visible text */
+button {
+  color: inherit;
+}
