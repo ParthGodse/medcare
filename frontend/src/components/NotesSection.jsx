@@ -31,7 +31,7 @@ const NotesSection = ({ notes, onAdd }) => {
           <p className="text-sm text-gray-500 italic">No notes added yet</p>
         ) : (
           notes.map((note, idx) => (
-            <div key={idx} className="p-3 bg-white rounded-lg border-l-4 border-blue-500 shadow-sm">
+            <div key={idx} className="p-3 bg-white rounded-lg border-l-4 border-indigo-500 shadow-sm">
               <p className="text-xs text-gray-500 mb-1">
                 {formatTime(note.timestamp)}
               </p>
@@ -44,14 +44,14 @@ const NotesSection = ({ notes, onAdd }) => {
       <textarea
         value={noteText}
         onChange={(e) => setNoteText(e.target.value)}
-        className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-blue-600 focus:outline-none resize-none text-gray-800"
+        className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-indigo-600 focus:outline-none resize-none text-gray-800"
         rows="3"
         placeholder="Add a note... (e.g., Patient febrile with chills)"
       />
 
       <button
         onClick={handleAdd}
-        className="mt-3 w-full py-3 bg-blue-600 text-white! font-semibold rounded-xl hover:bg-blue-700 transition-colors"
+        className="mt-3 w-full py-3 bg-indigo-600 text-white! font-semibold rounded-xl hover:bg-indigo-700 transition-colors"
       >
         Add Timestamped Note
       </button>

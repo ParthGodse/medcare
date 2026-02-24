@@ -29,8 +29,8 @@ const PublishModal = ({ isOpen, onClose, onConfirm, handoff }) => {
           </div>
 
           {/* Preview */}
-          <div className="mb-6 p-4 bg-blue-50 rounded-lg">
-            <p className="text-sm text-blue-800">
+          <div className="mb-6 p-4 bg-indigo-50 rounded-lg">
+            <p className="text-sm text-indigo-800">
               <strong>📋 Review Summary:</strong> This handoff will be saved to the patient record and sent to the incoming nurse.
             </p>
           </div>
@@ -95,7 +95,7 @@ const PublishModal = ({ isOpen, onClose, onConfirm, handoff }) => {
             <button
               onClick={handlePublish}
               disabled={isPublishing}
-              className="flex-1 py-3 bg-blue-600 text-white! font-semibold rounded-xl hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="flex-1 py-3 bg-indigo-600 text-white! font-semibold rounded-xl hover:bg-indigo-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {isPublishing ? (
                 <>

@@ -76,12 +76,12 @@ const VitalsForm = ({ onSubmit, entries }) => {
   };
 
   return (
-    <div className="bg-gray-50 rounded-xl p-6 border-2 border-gray-200">
+    <div className="bg-white rounded-2xl p-6 border-2 border-gray-200 shadow-sm">
       <div className="flex justify-between items-center mb-6">
-        <h3 className="text-xl font-bold text-gray-800">Current Vitals</h3>
+        <h3 className="text-xl font-bold text-indigo-600">Current Vitals</h3>
         <button 
           onClick={copyFromPrevious}
-          className="text-sm text-blue-600 font-medium hover:underline flex items-center gap-1"
+          className="text-sm text-indigo-600 font-medium hover:underline flex items-center gap-1"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"/>
@@ -101,7 +101,7 @@ const VitalsForm = ({ onSubmit, entries }) => {
               placeholder="120"
               value={vitals.bp_systolic}
               onChange={(e) => handleChange('bp_systolic', e.target.value)}
-              className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-xl text-lg font-semibold focus:border-blue-600 focus:outline-none"
+              className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-xl text-lg font-semibold focus:border-indigo-600 focus:outline-none"
             />
             <span className="font-bold text-gray-500">/</span>
             <input
@@ -109,7 +109,7 @@ const VitalsForm = ({ onSubmit, entries }) => {
               placeholder="80"
               value={vitals.bp_diastolic}
               onChange={(e) => handleChange('bp_diastolic', e.target.value)}
-              className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-xl text-lg font-semibold focus:border-blue-600 focus:outline-none"
+              className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-xl text-lg font-semibold focus:border-indigo-600 focus:outline-none"
             />
             <span className="text-sm text-gray-600 ml-2">mmHg</span>
           </div>
@@ -131,7 +131,7 @@ const VitalsForm = ({ onSubmit, entries }) => {
               placeholder="78"
               value={vitals.heart_rate}
               onChange={(e) => handleChange('heart_rate', e.target.value)}
-              className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-xl text-lg font-semibold focus:border-blue-600 focus:outline-none"
+              className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-xl text-lg font-semibold focus:border-indigo-600 focus:outline-none"
             />
             <span className="text-sm text-gray-600">bpm</span>
           </div>
@@ -146,7 +146,7 @@ const VitalsForm = ({ onSubmit, entries }) => {
               placeholder="37.0"
               value={vitals.temperature}
               onChange={(e) => handleChange('temperature', e.target.value)}
-              className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-xl text-lg font-semibold focus:border-blue-600 focus:outline-none"
+              className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-xl text-lg font-semibold focus:border-indigo-600 focus:outline-none"
             />
             <span className="text-sm text-gray-600">°C</span>
           </div>
@@ -168,7 +168,7 @@ const VitalsForm = ({ onSubmit, entries }) => {
               placeholder="98"
               value={vitals.o2_saturation}
               onChange={(e) => handleChange('o2_saturation', e.target.value)}
-              className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-xl text-lg font-semibold focus:border-blue-600 focus:outline-none"
+              className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-xl text-lg font-semibold focus:border-indigo-600 focus:outline-none"
             />
             <span className="text-sm text-gray-600">%</span>
           </div>
@@ -179,7 +179,7 @@ const VitalsForm = ({ onSubmit, entries }) => {
           <select
             value={vitals.o2_delivery}
             onChange={(e) => handleChange('o2_delivery', e.target.value)}
-            className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl text-gray-700 font-medium focus:border-blue-600 focus:outline-none"
+            className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl text-gray-700 font-medium focus:border-indigo-600 focus:outline-none"
           >
             <option>Room Air</option>
             <option>2L NC</option>
@@ -192,7 +192,7 @@ const VitalsForm = ({ onSubmit, entries }) => {
 
       <button
         onClick={handleSubmit}
-        className="mt-6 w-full py-3 bg-blue-600 text-white! font-semibold rounded-xl hover:bg-blue-700 transition-colors"
+        className="mt-6 w-full py-3 bg-indigo-600 text-white! font-semibold rounded-xl hover:bg-indigo-700 transition-colors"
       >
         Save Vitals
       </button>

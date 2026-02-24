@@ -136,12 +136,12 @@ const MedicationList = ({ medications, onAdd }) => {
       {!showForm ? (
         <button
           onClick={() => setShowForm(true)}
-          className="w-full py-3 border-2 border-dashed border-blue-600 text-blue-600 font-semibold rounded-xl hover:bg-blue-50 transition-colors"
+          className="w-full py-3 border-2 border-dashed border-indigo-600 text-indigo-600 font-semibold rounded-xl hover:bg-indigo-50 transition-colors"
         >
           + Add Medication Change
         </button>
       ) : (
-        <div className="border-2 border-blue-600 rounded-xl p-4 bg-white">
+        <div className="border-2 border-indigo-600 rounded-xl p-4 bg-white">
           <h4 className="font-semibold text-gray-800 mb-3">Add Medication Change</h4>
           
           <div className="space-y-3">
@@ -154,7 +154,7 @@ const MedicationList = ({ medications, onAdd }) => {
                 placeholder="e.g., Vancomycin"
                 value={newMed.medication}
                 onChange={(e) => setNewMed({ ...newMed, medication: e.target.value })}
-                className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none"
+                className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-indigo-600 focus:outline-none"
               />
             </div>
 
@@ -165,7 +165,7 @@ const MedicationList = ({ medications, onAdd }) => {
               <select
                 value={newMed.action}
                 onChange={(e) => setNewMed({ ...newMed, action: e.target.value })}
-                className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none"
+                className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-indigo-600 focus:outline-none"
               >
                 <option value="started">Started</option>
                 <option value="held">Held</option>
@@ -184,7 +184,7 @@ const MedicationList = ({ medications, onAdd }) => {
                 placeholder="e.g., 1g IV"
                 value={newMed.dose}
                 onChange={(e) => setNewMed({ ...newMed, dose: e.target.value })}
-                className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none"
+                className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-indigo-600 focus:outline-none"
               />
             </div>
 
@@ -196,7 +196,7 @@ const MedicationList = ({ medications, onAdd }) => {
                 type="time"
                 value={newMed.time}
                 onChange={(e) => setNewMed({ ...newMed, time: e.target.value })}
-                className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none"
+                className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-indigo-600 focus:outline-none"
               />
             </div>
 
@@ -210,7 +210,7 @@ const MedicationList = ({ medications, onAdd }) => {
                   placeholder="e.g., Hypotension"
                   value={newMed.reason}
                   onChange={(e) => setNewMed({ ...newMed, reason: e.target.value })}
-                  className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none"
+                  className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-indigo-600 focus:outline-none"
                 />
               </div>
             )}
@@ -225,7 +225,7 @@ const MedicationList = ({ medications, onAdd }) => {
                   placeholder="e.g., 20mg"
                   value={newMed.previousDose || ''}
                   onChange={(e) => setNewMed({ ...newMed, previousDose: e.target.value })}
-                  className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none"
+                  className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-indigo-600 focus:outline-none"
                 />
               </div>
             )}
@@ -234,7 +234,7 @@ const MedicationList = ({ medications, onAdd }) => {
           <div className="flex gap-2 mt-4">
             <button
               onClick={handleAdd}
-              className="flex-1 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
+              className="flex-1 py-2 bg-indigo-600 text-white! font-semibold rounded-lg hover:bg-indigo-700 transition-colors"
             >
               Add Medication
             </button>

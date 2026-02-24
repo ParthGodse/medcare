@@ -28,60 +28,51 @@ const PatientView = () => {
   }, [patientId]);
 
   const loadPatient = async () => {
-  try {
-    // Load patient info
-    const patientResponse = await patientsAPI.getById(patientId);
-    setPatient(patientResponse.data);
+    try {
+      const patientResponse = await patientsAPI.getById(patientId);
+      setPatient(patientResponse.data);
 
-    // Load shift history
-    const historyResponse = await patientsAPI.getShifts(patientId);
-    setShiftHistory(historyResponse.data);
+      const historyResponse = await patientsAPI.getShifts(patientId);
+      setShiftHistory(historyResponse.data);
 
-    // Check if there's an active (unpublished) shift
-    const activeShift = historyResponse.data.find(
-      s => s.shift.status === 'active' || s.shift.status === 'completed'
-    );
-    
-    if (activeShift) {
-      // Continue existing active shift
-      setShiftId(activeShift.shift.id);
-      setHasActiveShift(true);
+      const activeShift = historyResponse.data.find(
+        s => s.shift.status === 'active' || s.shift.status === 'completed'
+      );
       
-      // Load entries for active shift
-      const entriesResponse = await entriesAPI.getByShift(activeShift.shift.id);
-      setEntries(entriesResponse.data);
-      
-      // Check if handoff exists for this shift
-      try {
-        const handoffResponse = await handoffAPI.getByShift(activeShift.shift.id);
-        if (handoffResponse.data) {
-          setHandoff(handoffResponse.data);
+      if (activeShift) {
+        setShiftId(activeShift.shift.id);
+        setHasActiveShift(true);
+        
+        const entriesResponse = await entriesAPI.getByShift(activeShift.shift.id);
+        setEntries(entriesResponse.data);
+        
+        try {
+          const handoffResponse = await handoffAPI.getByShift(activeShift.shift.id);
+          if (handoffResponse.data) {
+            setHandoff(handoffResponse.data);
+          }
+        } catch (error) {
+          console.log('No handoff generated yet');
         }
-      } catch (error) {
-        // No handoff yet, that's okay
-        console.log('No handoff generated yet');
+      } else {
+        setHasActiveShift(false);
       }
-    } else {
-      // No active shift
-      setHasActiveShift(false);
-    }
 
-    // Load most recent published handoff (not active one)
-    const publishedShifts = historyResponse.data.filter(
-      s => s.shift.status === 'published' && s.handoff
-    );
-    
-    if (publishedShifts.length > 0) {
-      const latestPublished = publishedShifts[0];
-      setPreviousHandoff(latestPublished);
-    }
+      const publishedShifts = historyResponse.data.filter(
+        s => s.shift.status === 'published' && s.handoff
+      );
+      
+      if (publishedShifts.length > 0) {
+        const latestPublished = publishedShifts[0];
+        setPreviousHandoff(latestPublished);
+      }
 
-    setLoading(false);
-  } catch (error) {
-    console.error('Error loading patient:', error);
-    setLoading(false);
-  }
-};
+      setLoading(false);
+    } catch (error) {
+      console.error('Error loading patient:', error);
+      setLoading(false);
+    }
+  };
 
   const startNewShift = async () => {
     try {
@@ -132,58 +123,58 @@ const PatientView = () => {
     }
   };
 
+  const handleDeleteHandoff = async (handoffId) => {
+    try {
+      await handoffAPI.delete(handoffId);
+      await loadPatient();
+    } catch (error) {
+      console.error('Error deleting handoff:', error);
+      throw error;
+    }
+  };
+
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="text-lg">Loading...</div>
+      <div className="flex justify-center items-center h-screen bg-white">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-indigo-600 mx-auto"></div>
+          <p className="text-gray-600 mt-4 font-medium">Loading patient...</p>
+        </div>
       </div>
     );
   }
-
-  const handleDeleteHandoff = async (handoffId) => {
-  try {
-    await handoffAPI.delete(handoffId);
-    // Reload patient data after delete
-    await loadPatient();
-  } catch (error) {
-    console.error('Error deleting handoff:', error);
-    throw error;
-  }
-};
 
   const medications = entries.filter(e => e.entry_type === 'med_change');
   const notes = entries.filter(e => e.entry_type === 'note');
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-blue-600 text-white p-4 shadow-md">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
+    <div className="min-h-screen bg-white relative">
+      {/* Subtle Purple Tint Background */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-0 right-0 w-150 h-150 bg-purple-100 rounded-full opacity-20 blur-3xl"></div>
+        <div className="absolute bottom-0 left-0 w-125 h-125 bg-indigo-100 rounded-full opacity-15 blur-3xl"></div>
+      </div>
+
+      {/* Header */}
+      <header className="bg-white shadow-md relative border-b border-gray-200 z-20">
+        <div className="max-w-7xl mx-auto px-6 py-6 relative flex items-center">
           <button 
             onClick={() => navigate('/')}
-            className="flex items-center gap-2 hover:bg-blue-700 px-3 py-2 rounded-lg transition-colors"
+            className="flex items-center gap-2 text-gray-700 hover:text-indigo-600! px-3 py-2 rounded-lg transition-colors"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"/>
             </svg>
-            <span className="hidden sm:inline">Back to Dashboard</span>
+            <span className="font-semibold">Back to Dashboard</span>
           </button>
-          <div className="text-center">
-            <h1 className="text-xl font-bold">ShiftSync</h1>
-            <p className="text-xs opacity-90">Day Shift • 7:00 AM - 7:00 PM</p>
+          <div className="absolute left-1/2 -translate-x-1/2 text-center">
+            <h1 className="text-2xl font-bold text-indigo-600!">ShiftSync</h1>
+            <p className="text-xs text-gray-500 font-medium">Day Shift • 7:00 AM - 7:00 PM</p>
           </div>
-          <button 
-            onClick={() => setShowHistoryModal(true)}
-            className="flex items-center gap-2 hover:bg-blue-700 px-3 py-2 rounded-lg transition-colors"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-            </svg>
-            <span className="hidden sm:inline">History</span>
-          </button>
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto p-4">
+      <div className="max-w-7xl mx-auto p-6 relative z-10">
         {patient && (
           <div className="mb-6">
             <PatientCard patient={patient} />
@@ -199,10 +190,12 @@ const PatientView = () => {
               />
             )}
             
-            <div className="bg-white rounded-xl shadow-md p-8 text-center">
-              <svg className="w-16 h-16 mx-auto text-blue-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-              </svg>
+            <div className="bg-white rounded-2xl shadow-md border border-gray-200 p-8 text-center">
+              <div className="bg-purple-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
+                <svg className="w-10 h-10 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                </svg>
+              </div>
               <h2 className="text-2xl font-bold text-gray-800 mb-2">Start New Shift</h2>
               <p className="text-gray-600 mb-6">
                 {previousHandoff 
@@ -211,7 +204,7 @@ const PatientView = () => {
               </p>
               <button
                 onClick={startNewShift}
-                className="px-8 py-4 bg-blue-600 text-white! font-bold rounded-xl hover:bg-blue-700 shadow-lg transition-colors"
+                className="px-8 py-4 bg-indigo-600 text-white! font-bold rounded-2xl hover:bg-indigo-700 shadow-lg transition-all transform hover:-translate-y-0.5"
               >
                 Start Shift
               </button>
@@ -227,13 +220,13 @@ const PatientView = () => {
                 />
               )}
 
-              <div className="bg-white rounded-xl shadow-md overflow-hidden">
+              <div className="bg-white rounded-2xl shadow-md border border-gray-200 overflow-hidden">
                 <div className="flex border-b bg-white sticky top-0 z-10">
                   <button
                     onClick={() => setActiveTab('entry')}
-                    className={`flex-1 py-3 font-medium transition-colors ${
+                    className={`flex-1 py-4 font-semibold transition-colors ${
                       activeTab === 'entry'
-                        ? 'border-b-2 border-blue-600 text-blue-600'
+                        ? 'border-b-2 border-indigo-600 text-indigo-600'
                         : 'text-gray-500 hover:text-gray-700'
                     }`}
                   >
@@ -241,9 +234,9 @@ const PatientView = () => {
                   </button>
                   <button
                     onClick={() => setActiveTab('summary')}
-                    className={`flex-1 py-3 font-medium transition-colors ${
+                    className={`flex-1 py-4 font-semibold transition-colors ${
                       activeTab === 'summary'
-                        ? 'border-b-2 border-blue-600 text-blue-600'
+                        ? 'border-b-2 border-indigo-600 text-indigo-600'
                         : 'text-gray-500 hover:text-gray-700'
                     }`}
                   >
@@ -266,12 +259,12 @@ const PatientView = () => {
             </div>
 
             <div className="lg:col-span-1">
-              <div className="bg-white rounded-xl shadow-md p-6 sticky top-24">
-                <h3 className="text-lg font-bold mb-4">Quick Actions</h3>
+              <div className="bg-white rounded-2xl shadow-md border border-gray-200 p-6 sticky top-24">
+                <h3 className="text-lg font-bold text-indigo-600 mb-4">Quick Actions</h3>
                 
                 <button
                   onClick={handleGenerateSummary}
-                  className="w-full py-3 bg-blue-600 text-white! font-semibold rounded-xl hover:bg-blue-700 transition-colors mb-3 flex items-center justify-center gap-2"
+                  className="w-full py-3 bg-indigo-600 text-white! font-semibold rounded-xl hover:bg-indigo-700 transition-colors mb-3 flex items-center justify-center gap-2 shadow-md"
                 >
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
@@ -284,25 +277,25 @@ const PatientView = () => {
                   Generate Handoff
                 </button>
 
-                <div className="mt-6 pt-6 border-t">
+                <div className="mt-6 pt-6 border-t border-gray-200">
                   <h4 className="font-semibold mb-3 text-gray-700">Shift Stats</h4>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="text-gray-600">Entries:</span>
-                      <span className="font-semibold">{entries.length}</span>
+                      <span className="font-semibold text-indigo-600">{entries.length}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Medications:</span>
-                      <span className="font-semibold">{medications.length}</span>
+                      <span className="font-semibold text-indigo-600">{medications.length}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Notes:</span>
-                      <span className="font-semibold">{notes.length}</span>
+                      <span className="font-semibold text-indigo-600">{notes.length}</span>
                     </div>
                   </div>
                 </div>
 
-                <div className="mt-6 pt-6 border-t">
+                <div className="mt-6 pt-6 border-t border-gray-200">
                   <h4 className="font-semibold mb-3 text-gray-700">Tips</h4>
                   <ul className="text-sm text-gray-600 space-y-2">
                     <li>• Enter vitals first</li>
@@ -317,10 +310,11 @@ const PatientView = () => {
         )}
       </div>
 
-      <div className="lg:hidden fixed bottom-6 right-6">
+      {/* Mobile FAB */}
+      <div className="lg:hidden fixed bottom-6 right-6 z-30">
         <button
           onClick={handleGenerateSummary}
-          className="bg-blue-600 text-white rounded-full p-4 shadow-2xl hover:scale-110 transition-transform"
+          className="bg-indigo-600 text-white rounded-full p-4 shadow-2xl hover:scale-110 transition-transform"
         >
           <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 20 20">
             <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
