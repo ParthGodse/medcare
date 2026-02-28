@@ -75,21 +75,20 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-white relative">
-      {/* Subtle Purple Tint Background - Very Faint */}
+      {/* Purple Tint Background */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-0 right-0 w-150 h-150 bg-purple-100 rounded-full opacity-20 blur-3xl"></div>
         <div className="absolute bottom-0 left-0 w-125 h-125 bg-indigo-100 rounded-full opacity-15 blur-3xl"></div>
         <div className="absolute top-1/3 left-1/3 w-100 h-100 bg-purple-50 rounded-full opacity-10 blur-3xl"></div>
       </div>
 
-      {/* White/Cream Header */}
       <header className="bg-white shadow-md relative border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-6 py-8 relative z-10">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div>
                 <h1 className="text-4xl font-bold text-indigo-600!">
-                  ShiftSync
+                  MedSync
                 </h1>
                 <p className="text-gray-600 text-sm mt-1 font-medium">Smart Clinical Handoff System</p>
               </div>

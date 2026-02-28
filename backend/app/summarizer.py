@@ -121,14 +121,7 @@ def call_ollama(prompt: str) -> str | None:
 
 
 def parse_numbered_list(text: str) -> List[str]:
-    """
-    Parse LLM output into clean list items.
-    Handles formats like:
-      1. Item one
-      2. Item two
-      - Item three
-      Item four
-    """
+
     if not text or text.strip().lower() in ("none", "n/a", ""):
         return []
 
@@ -154,7 +147,7 @@ def parse_numbered_list(text: str) -> List[str]:
 def generate_handoff_summary(entries: List[Dict]) -> Dict[str, any]:
     """Generate full handoff summary using rule-based extraction + Ollama LLM"""
 
-    # ── 1. Rule-based extraction ──────────────────────────────────────────────
+    # Rule-based extraction 
     critical_items  = extract_critical_items(entries)
     explicit_tasks  = extract_pending_tasks(entries)
     notes_text      = extract_notes_text(entries)
@@ -166,7 +159,7 @@ def generate_handoff_summary(entries: List[Dict]) -> Dict[str, any]:
     has_critical = len(critical_items) > 0
     has_notes    = bool(notes_text.strip())
 
-    # ── 2. NARRATIVE via LLM ─────────────────────────────────────────────────
+    # NARRATIVE
     narrative_prompt = f"""You are a clinical documentation assistant. Write a 2-3 sentence professional shift handoff narrative for a nurse.
 
 Use ONLY the information below. Do NOT invent details.
@@ -194,7 +187,6 @@ Rules:
         else:
             narrative = "Shift completed without significant events."
 
-    # ── 3. STABLE ITEMS via LLM ──────────────────────────────────────────────
     stable_items = []
 
     if not has_critical:
@@ -222,8 +214,7 @@ Pain well controlled"""
         if not stable_items:
             stable_items = ["Condition stable this shift"]
 
-    # No stable section when critical items exist - don't confuse incoming nurse
-    # ── 4. PENDING TASKS via LLM ─────────────────────────────────────────────
+    # No stable section when critical items exist 
     llm_pending = []
 
     if has_notes:
@@ -258,7 +249,6 @@ Follow up with MD re: hypotension"""
             seen.add(task_lower)
             all_pending.append(task)
 
-    # ── 5. Build final response ───────────────────────────────────────────────
     return {
         "critical_items": critical_items if critical_items else ["No critical alerts this shift"],
         "stable_items":   stable_items   if stable_items   else (["Monitor closely for changes"] if has_critical else ["Condition stable"]),
