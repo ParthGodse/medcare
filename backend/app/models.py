@@ -15,13 +15,13 @@ class Patient(Base):
     code_status = Column(String)
     admission_date = Column(DateTime, default=datetime.utcnow)
     
-    shifts = relationship("Shift", back_populates="patient")
+    shifts = relationship("Shift", back_populates="patient") #allows us to access patient.shifts to get all shifts for a patient
 
 class Shift(Base):
     __tablename__ = "shifts"
     
     id = Column(String, primary_key=True, index=True)
-    patient_id = Column(String, ForeignKey("patients.id"))
+    patient_id = Column(String, ForeignKey("patients.id")) #ensures shift is linked to a patient
     nurse_id = Column(String)
     nurse_name = Column(String)
     start_time = Column(DateTime, default=datetime.utcnow)

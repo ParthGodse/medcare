@@ -22,6 +22,7 @@ const PatientView = () => {
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [hasActiveShift, setHasActiveShift] = useState(false);
+  const [generatingHandoff, setGeneratingHandoff] = useState(false); // ADD THIS
 
   useEffect(() => {
     loadPatient();
@@ -98,14 +99,18 @@ const PatientView = () => {
   };
 
   const handleGenerateSummary = async () => {
-    try {
-      const response = await handoffAPI.generate(shiftId);
-      setHandoff(response.data);
-      setActiveTab('summary');
-    } catch (error) {
-      console.error('Error generating handoff:', error);
-    }
-  };
+  setGeneratingHandoff(true); // ADD THIS
+  try {
+    const response = await handoffAPI.generate(shiftId);
+    setHandoff(response.data);
+    setActiveTab('summary');
+  } catch (error) {
+    console.error('Error generating handoff:', error);
+    alert('❌ Error generating handoff. Please try again.');
+  } finally {
+    setGeneratingHandoff(false); // ADD THIS
+  }
+};
 
   const handlePublish = async () => {
     if (!handoff || !handoff.id) {
@@ -262,20 +267,33 @@ const PatientView = () => {
               <div className="bg-white rounded-2xl shadow-md border border-gray-200 p-6 sticky top-24">
                 <h3 className="text-lg font-bold text-indigo-600 mb-4">Quick Actions</h3>
                 
-                <button
-                  onClick={handleGenerateSummary}
-                  className="w-full py-3 bg-indigo-600 text-white! font-semibold rounded-xl hover:bg-indigo-700 transition-colors mb-3 flex items-center justify-center gap-2 shadow-md"
-                >
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
-                    <path
-                      fillRule="evenodd"
-                      d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm9.707 5.707a1 1 0 00-1.414-1.414L9 12.586l-1.293-1.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  Generate Handoff
-                </button>
+               <button
+                onClick={handleGenerateSummary}
+                disabled={generatingHandoff}
+                className="w-full py-3 bg-indigo-600 text-white! font-semibold rounded-xl hover:bg-indigo-700 transition-colors mb-3 flex items-center justify-center gap-2 shadow-md disabled:bg-indigo-400 disabled:cursor-not-allowed"
+              >
+                {generatingHandoff ? (
+                  <>
+                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                    </svg>
+                    <span>Generating...</span>
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
+                      <path
+                        fillRule="evenodd"
+                        d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm9.707 5.707a1 1 0 00-1.414-1.414L9 12.586l-1.293-1.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    <span>Generate Handoff</span>
+                  </>
+                )}
+              </button>
 
                 <div className="mt-6 pt-6 border-t border-gray-200">
                   <h4 className="font-semibold mb-3 text-gray-700">Shift Stats</h4>

@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel #pydantic schema for automatic validation of data
 from typing import List, Optional, Dict, Any
 from datetime import datetime
 
@@ -21,14 +21,14 @@ class PatientResponse(BaseModel):
     admission_date: datetime
     
     class Config:
-        from_attributes = True
+        from_attributes = True #Pydantic can read SQLAlchemy models directly, wihtout this will ge terror when tryint to return db obj
 
-class EntryCreate(BaseModel):
+class EntryCreate(BaseModel): #creating shift entries
     entry_type: str
     data: Dict[str, Any]
     is_critical: Optional[bool] = False
 
-class EntryResponse(BaseModel):
+class EntryResponse(BaseModel): #returning shift entries
     id: str
     shift_id: str
     timestamp: datetime
@@ -39,7 +39,7 @@ class EntryResponse(BaseModel):
     class Config:
         from_attributes = True
 
-class HandoffResponse(BaseModel):
+class HandoffResponse(BaseModel): #returning handoff summary
     id: str
     shift_id: str
     critical_items: List[str]

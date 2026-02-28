@@ -27,7 +27,7 @@ app.add_middleware(
 def read_root():
     return {"message": "Nursing Handoff API", "status": "running"}
 
-# Patient endpoints
+# Patient endpoints, create patient
 @app.post("/patients", response_model=schemas.PatientResponse)
 def create_patient(patient: schemas.PatientCreate, db: Session = Depends(get_db)):
     db_patient = models.Patient(
@@ -39,6 +39,7 @@ def create_patient(patient: schemas.PatientCreate, db: Session = Depends(get_db)
     db.refresh(db_patient)
     return db_patient
 
+#get single patient
 @app.get("/patients/{patient_id}", response_model=schemas.PatientResponse)
 def get_patient(patient_id: str, db: Session = Depends(get_db)):
     patient = db.query(models.Patient).filter(models.Patient.id == patient_id).first()
@@ -46,12 +47,13 @@ def get_patient(patient_id: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Patient not found")
     return patient
 
+#list all patients
 @app.get("/patients", response_model=List[schemas.PatientResponse])
 def list_patients(db: Session = Depends(get_db)):
     patients = db.query(models.Patient).all()
     return patients
 
-# Shift endpoints
+# Shift endpoints, create shift
 @app.post("/shifts")
 def create_shift(patient_id: str, nurse_name: str, db: Session = Depends(get_db)):
     shift = models.Shift(
@@ -72,7 +74,7 @@ def get_shift(shift_id: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Shift not found")
     return shift
 
-# Entry endpoints
+# Entry endpoints, create entry(vitals/meds/notes)
 @app.post("/shifts/{shift_id}/entries", response_model=schemas.EntryResponse)
 def create_entry(
     shift_id: str,
@@ -89,6 +91,7 @@ def create_entry(
     db.refresh(db_entry)
     return db_entry
 
+#get all entries for a shift
 @app.get("/shifts/{shift_id}/entries", response_model=List[schemas.EntryResponse])
 def get_entries(shift_id: str, db: Session = Depends(get_db)):
     entries = db.query(models.Entry).filter(models.Entry.shift_id == shift_id).all()
@@ -135,6 +138,7 @@ def generate_handoff(
     
     return handoff
 
+#retrieves specifc summary
 @app.get("/handoff/{handoff_id}", response_model=schemas.HandoffResponse)
 def get_handoff(handoff_id: str, db: Session = Depends(get_db)):
     handoff = db.query(models.Handoff).filter(models.Handoff.id == handoff_id).first()
@@ -142,8 +146,7 @@ def get_handoff(handoff_id: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Handoff not found")
     return handoff
 
-# Add this to backend/app/main.py after the generate_handoff endpoint
-
+#publish handoff
 @app.post("/handoff/{handoff_id}/publish")
 def publish_handoff(handoff_id: str, db: Session = Depends(get_db)):
     """Publish a handoff and mark shift as completed"""
@@ -175,6 +178,7 @@ def publish_handoff(handoff_id: str, db: Session = Depends(get_db)):
         "published_at": handoff.published_at
     }
 
+#future feature
 @app.post("/handoff/{handoff_id}/acknowledge")
 def acknowledge_handoff(
     handoff_id: str, 
@@ -198,6 +202,7 @@ def acknowledge_handoff(
         "acknowledged_at": handoff.acknowledged_at
     }
 
+#get shift's handoff
 @app.get("/shifts/{shift_id}/handoff")
 def get_shift_handoff(shift_id: str, db: Session = Depends(get_db)):
     """Get handoff for a specific shift"""
@@ -211,6 +216,7 @@ def get_shift_handoff(shift_id: str, db: Session = Depends(get_db)):
     
     return handoff
 
+#get patient's shift history
 @app.get("/patients/{patient_id}/shifts")
 def get_patient_shifts(patient_id: str, db: Session = Depends(get_db)):
     """Get all shifts for a patient"""

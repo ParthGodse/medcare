@@ -1,6 +1,5 @@
 @import "tailwindcss";
 
-/* Base styles to ensure text is visible */
 * {
   box-sizing: border-box;
 }
@@ -26,17 +25,14 @@ input::placeholder, textarea::placeholder {
   color: #9ca3af;
 }
 
-/* Ensure labels are visible */
 label {
   color: #374151;
 }
 
-/* Ensure headings are visible */
 h1, h2, h3, h4, h5, h6 {
   color: #111827;
 }
 
-/* Ensure buttons have visible text */
 button {
   color: inherit;
 }
