@@ -53,6 +53,61 @@ def list_patients(db: Session = Depends(get_db)):
     patients = db.query(models.Patient).all()
     return patients
 
+# Add this to your main.py
+@app.delete("/patients/{patient_id}")
+def delete_patient(patient_id: str, db: Session = Depends(get_db)):
+    """Delete a patient and all associated data"""
+    
+    patient = db.query(models.Patient).filter(models.Patient.id == patient_id).first()
+    if not patient:
+        raise HTTPException(status_code=404, detail="Patient not found")
+    
+    # Get all shifts for this patient
+    shifts = db.query(models.Shift).filter(models.Shift.patient_id == patient_id).all()
+    
+    # Delete all associated data
+    for shift in shifts:
+        # Delete handoffs
+        db.query(models.Handoff).filter(models.Handoff.shift_id == shift.id).delete()
+        # Delete entries
+        db.query(models.Entry).filter(models.Entry.shift_id == shift.id).delete()
+        # Delete shift
+        db.delete(shift)
+    
+    # Delete the patient
+    db.delete(patient)
+    db.commit()
+    
+    return {"message": f"Patient {patient.name} deleted successfully"}
+
+@app.delete("/patients/{patient_id}/shifts")
+def delete_patient_shifts(patient_id: str, db: Session = Depends(get_db)):
+    """Delete all shifts, handoffs, entries AND the patient"""
+    
+    # Check if patient exists
+    patient = db.query(models.Patient).filter(models.Patient.id == patient_id).first()
+    if not patient:
+        raise HTTPException(status_code=404, detail="Patient not found")
+    
+    # Get all shifts for this patient
+    shifts = db.query(models.Shift).filter(models.Shift.patient_id == patient_id).all()
+    
+    # Delete all associated data
+    for shift in shifts:
+        # Delete handoffs
+        db.query(models.Handoff).filter(models.Handoff.shift_id == shift.id).delete()
+        # Delete entries
+        db.query(models.Entry).filter(models.Entry.shift_id == shift.id).delete()
+        # Delete shift
+        db.delete(shift)
+    
+    # Delete the patient itself
+    db.delete(patient)
+    
+    db.commit()
+    
+    return {"message": f"Patient {patient.name} and all associated data deleted successfully"}
+
 # Shift endpoints, create shift
 @app.post("/shifts")
 def create_shift(patient_id: str, nurse_name: str, db: Session = Depends(get_db)):
@@ -103,6 +158,16 @@ def generate_handoff(
     request: schemas.HandoffGenerate,
     db: Session = Depends(get_db)
 ):
+    # CHECK FOR EXISTING UNPUBLISHED HANDOFF AND DELETE IT
+    existing_handoff = db.query(models.Handoff).filter(
+        models.Handoff.shift_id == request.shift_id
+    ).first()
+    
+    if existing_handoff:
+        # If there's an existing handoff, delete it so we can regenerate
+        db.delete(existing_handoff)
+        db.commit()
+    
     # Get all entries for this shift
     entries = db.query(models.Entry).filter(
         models.Entry.shift_id == request.shift_id
@@ -122,7 +187,7 @@ def generate_handoff(
     # Generate summary
     summary = generate_handoff_summary(entries_data)
     
-    # Create handoff record
+    # Create NEW handoff record
     handoff = models.Handoff(
         id=str(uuid.uuid4()),
         shift_id=request.shift_id,

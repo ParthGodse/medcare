@@ -15,6 +15,27 @@ const VitalsForm = ({ onSubmit, entries }) => {
     setVitals(prev => ({ ...prev, [field]: value }));
   };
 
+  // Helper functions for abnormal detection
+  const isAbnormalBP = (systolic) => {
+    const val = parseFloat(systolic);
+    return !isNaN(val) && (val < 90 || val > 140);
+  };
+
+  const isAbnormalHR = (hr) => {
+    const val = parseFloat(hr);
+    return !isNaN(val) && (val < 60 || val > 100);
+  };
+
+  const isAbnormalTemp = (temp) => {
+    const val = parseFloat(temp);
+    return !isNaN(val) && val > 38.0;
+  };
+
+  const isAbnormalO2 = (o2) => {
+    const val = parseFloat(o2);
+    return !isNaN(val) && val < 95;
+  };
+
   const copyFromPrevious = () => {
     // Find the last vitals entry
     const vitalEntries = entries.filter(e => e.entry_type === 'vitals');
@@ -50,10 +71,10 @@ const VitalsForm = ({ onSubmit, entries }) => {
     }
 
     const isCritical = 
-      (vitals.bp_systolic && isAbnormalVital('bp_systolic', vitals.bp_systolic)) ||
-      (vitals.temperature && isAbnormalVital('temperature', vitals.temperature)) ||
-      (vitals.heart_rate && isAbnormalVital('heart_rate', vitals.heart_rate)) ||
-      (vitals.o2_saturation && parseFloat(vitals.o2_saturation) < 95);
+      isAbnormalBP(vitals.bp_systolic) ||
+      isAbnormalHR(vitals.heart_rate) ||
+      isAbnormalTemp(vitals.temperature) ||
+      isAbnormalO2(vitals.o2_saturation);
 
     onSubmit({
       entry_type: 'vitals',
@@ -63,16 +84,6 @@ const VitalsForm = ({ onSubmit, entries }) => {
 
     // Show success message
     alert('✓ Vitals saved successfully');
-    
-    // Optional: Clear form after saving
-    // setVitals({
-    //   bp_systolic: '',
-    //   bp_diastolic: '',
-    //   heart_rate: '',
-    //   temperature: '',
-    //   o2_saturation: '',
-    //   o2_delivery: 'Room Air',
-    // });
   };
 
   return (
@@ -91,6 +102,7 @@ const VitalsForm = ({ onSubmit, entries }) => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Blood Pressure */}
         <div className="md:col-span-2">
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Blood Pressure *
@@ -113,16 +125,17 @@ const VitalsForm = ({ onSubmit, entries }) => {
             />
             <span className="text-sm text-gray-600 ml-2">mmHg</span>
           </div>
-          {isAbnormalVital('bp_systolic', vitals.bp_systolic) && (
+          {isAbnormalBP(vitals.bp_systolic) && (
             <p className="text-xs text-red-600 mt-1 font-medium flex items-center gap-1">
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd"/>
               </svg>
-              Abnormal BP
+              {parseFloat(vitals.bp_systolic) < 90 ? 'Hypotension' : 'Hypertension'}
             </p>
           )}
         </div>
 
+        {/* Heart Rate */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Heart Rate *</label>
           <div className="flex gap-2 items-center">
@@ -135,8 +148,17 @@ const VitalsForm = ({ onSubmit, entries }) => {
             />
             <span className="text-sm text-gray-600">bpm</span>
           </div>
+          {isAbnormalHR(vitals.heart_rate) && (
+            <p className="text-xs text-red-600 mt-1 font-medium flex items-center gap-1">
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd"/>
+              </svg>
+              {parseFloat(vitals.heart_rate) < 60 ? 'Bradycardia' : 'Tachycardia'}
+            </p>
+          )}
         </div>
 
+        {/* Temperature */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Temperature *</label>
           <div className="flex gap-2 items-center">
@@ -150,7 +172,7 @@ const VitalsForm = ({ onSubmit, entries }) => {
             />
             <span className="text-sm text-gray-600">°C</span>
           </div>
-          {isAbnormalVital('temperature', vitals.temperature) && (
+          {isAbnormalTemp(vitals.temperature) && (
             <p className="text-xs text-red-600 mt-1 font-medium flex items-center gap-1">
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd"/>
@@ -160,6 +182,7 @@ const VitalsForm = ({ onSubmit, entries }) => {
           )}
         </div>
 
+        {/* O2 Saturation */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">O2 Saturation *</label>
           <div className="flex gap-2 items-center">
@@ -172,8 +195,17 @@ const VitalsForm = ({ onSubmit, entries }) => {
             />
             <span className="text-sm text-gray-600">%</span>
           </div>
+          {isAbnormalO2(vitals.o2_saturation) && (
+            <p className="text-xs text-red-600 mt-1 font-medium flex items-center gap-1">
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd"/>
+              </svg>
+              Hypoxic
+            </p>
+          )}
         </div>
 
+        {/* O2 Delivery */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">O2 Delivery</label>
           <select

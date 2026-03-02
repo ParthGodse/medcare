@@ -249,9 +249,16 @@ Follow up with MD re: hypotension"""
             seen.add(task_lower)
             all_pending.append(task)
 
+    if has_critical:
+    # When critical issues exist, stable section should be minimal or empty
+        final_stable_items = []  # Don't show stable section at all
+    else:
+        # Only when NO critical items, show stable observations
+        final_stable_items = stable_items if stable_items else ["Condition stable this shift"]
+
     return {
         "critical_items": critical_items if critical_items else ["No critical alerts this shift"],
-        "stable_items":   stable_items   if stable_items   else (["Monitor closely for changes"] if has_critical else ["Condition stable"]),
+        "stable_items":   final_stable_items,
         "pending_tasks":  all_pending    if all_pending    else ["No outstanding tasks identified"],
         "narrative":      narrative
     }
