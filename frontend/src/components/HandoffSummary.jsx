@@ -29,7 +29,7 @@ const HandoffSummary = ({ handoff, onPublish }) => {
 
   return (
     <div className="p-4 pb-24">
-      <div className="mb-4 p-4 bg-blue-50 border-l-4 border-indigo-500 rounded-lg">
+      <div className="mb-4 p-4 bg-indigo-50 border-l-4 border-indigo-500 rounded-lg">
         <p className="text-sm text-indigo-800">
           <strong>💡 Auto-generated summary.</strong> Review carefully before publishing.
         </p>

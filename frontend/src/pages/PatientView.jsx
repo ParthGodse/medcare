@@ -154,7 +154,7 @@ const PatientView = () => {
 
   return (
     <div className="min-h-screen bg-white relative">
-      {/* Subtle Purple Tint Background */}
+      {/* Purple Tint Background */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-0 right-0 w-150 h-150 bg-purple-100 rounded-full opacity-20 blur-3xl"></div>
         <div className="absolute bottom-0 left-0 w-125 h-125 bg-indigo-100 rounded-full opacity-15 blur-3xl"></div>
@@ -173,7 +173,7 @@ const PatientView = () => {
             <span className="font-semibold">Back to Dashboard</span>
           </button>
           <div className="absolute left-1/2 -translate-x-1/2 text-center">
-            <h1 className="text-2xl font-bold text-indigo-600!">ShiftSync</h1>
+            <h1 className="text-2xl font-bold text-indigo-600!">MedSync</h1>
             <p className="text-xs text-gray-500 font-medium">Day Shift • 7:00 AM - 7:00 PM</p>
           </div>
         </div>
@@ -328,7 +328,7 @@ const PatientView = () => {
         )}
       </div>
 
-      {/* Mobile FAB */}
+      {/* Mobile */}
       <div className="lg:hidden fixed bottom-6 right-6 z-30">
         <button
           onClick={handleGenerateSummary}

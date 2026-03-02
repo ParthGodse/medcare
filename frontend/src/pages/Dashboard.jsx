@@ -35,7 +35,7 @@ const Dashboard = () => {
     try {
       const demoPatient = {
         mrn: 'MRN' + Math.random().toString(36).substr(2, 9).toUpperCase(),
-        name: 'Sarah Johnson',
+        name: 'John Doe',
         dob: '1958-03-15',
         room: '302-A',
         allergies: ['Penicillin'],
@@ -66,7 +66,6 @@ const Dashboard = () => {
   };
 
   const currentShift = getCurrentShift();
-
   const filteredPatients = patients.filter(patient => 
     patient.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     patient.mrn.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -74,12 +73,12 @@ const Dashboard = () => {
   );
 
   return (
-    <div className="min-h-screen bg-white relative">
+    <div className="min-h-screen bg-indigo-50 relative">
       {/* Purple Tint Background */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-0 right-0 w-150 h-150 bg-purple-100 rounded-full opacity-20 blur-3xl"></div>
-        <div className="absolute bottom-0 left-0 w-125 h-125 bg-indigo-100 rounded-full opacity-15 blur-3xl"></div>
-        <div className="absolute top-1/3 left-1/3 w-100 h-100 bg-purple-50 rounded-full opacity-10 blur-3xl"></div>
+        <div className="absolute -top-60 -right-60 w-150 h-150 bg-purple-100 rounded-full"></div>
+        <div className="absolute -bottom-60 -left-60 w-150 h-150 bg-indigo-200 rounded-full"></div>
+        <div className="absolute top-1/3 left-1/3 w-100 h-100 bg-purple-500 rounded-full opacity-20 blur-3xl"></div>
       </div>
 
       <header className="bg-white shadow-md relative border-b border-gray-200">
