@@ -51,55 +51,38 @@ const VitalsForm = ({ onSubmit, entries, showError = false }) => {
     return !isNaN(val) && val < 95;
   };
 
-  const copyFromPrevious = () => {
-    // Find the last vitals entry
-    const vitalEntries = entries.filter(e => e.entry_type === 'vitals');
-    
-    if (vitalEntries.length === 0) {
-      showToast('No previous vitals to copy', 'warning');
-      return;
-    }
-
-    // Get the most recent vitals
-    const lastVitals = vitalEntries[vitalEntries.length - 1];
-    
-    if (lastVitals && lastVitals.data) {
-      setVitals({
-        bp_systolic: lastVitals.data.bp_systolic || '',
-        bp_diastolic: lastVitals.data.bp_diastolic || '',
-        heart_rate: lastVitals.data.heart_rate || '',
-        temperature: lastVitals.data.temperature || '',
-        o2_saturation: lastVitals.data.o2_saturation || '',
-        o2_delivery: lastVitals.data.o2_delivery || 'Room Air',
-      });
-      showToast('Previous vitals copied', 'success');
-    } else {
-      showToast('No previous vitals found', 'error');
-    }
-  };
-
   const handleSubmit = () => {
-    // Validate that we have at least BP or HR or Temp
-    if (!vitals.bp_systolic && !vitals.heart_rate && !vitals.temperature) {
-      showToast('Please enter at least Blood Pressure, Heart Rate, or Temperature', 'error');
-      return;
-    }
+  // Validate that we have at least BP or HR or Temp
+  if (!vitals.bp_systolic && !vitals.heart_rate && !vitals.temperature) {
+    showToast('Please enter at least Blood Pressure, Heart Rate, or Temperature', 'error');
+    return;
+  }
 
-    const isCritical = 
-      isAbnormalBP(vitals.bp_systolic) ||
-      isAbnormalHR(vitals.heart_rate) ||
-      isAbnormalTemp(vitals.temperature) ||
-      isAbnormalO2(vitals.o2_saturation);
+  const isCritical = 
+    isAbnormalBP(vitals.bp_systolic) ||
+    isAbnormalHR(vitals.heart_rate) ||
+    isAbnormalTemp(vitals.temperature) ||
+    isAbnormalO2(vitals.o2_saturation);
 
-    onSubmit({
-      entry_type: 'vitals',
-      data: vitals,
-      is_critical: isCritical
-    });
+  onSubmit({
+    entry_type: 'vitals',
+    data: vitals,
+    is_critical: isCritical
+  });
 
-    // Show success message
-    showToast('Vitals saved successfully', 'success');
-  };
+  // Clear the form after saving
+  setVitals({
+    bp_systolic: '',
+    bp_diastolic: '',
+    heart_rate: '',
+    temperature: '',
+    o2_saturation: '',
+    o2_delivery: 'Room Air',
+  });
+
+  // Show success message
+  showToast('Vitals saved successfully', 'success');
+};
 
   return (
     <>
@@ -119,15 +102,6 @@ const VitalsForm = ({ onSubmit, entries, showError = false }) => {
         <div className="bg-white rounded-2xl p-6 border-2 border-gray-200 shadow-sm">
           <div className="flex justify-between items-center mb-6">
             <h3 className="text-xl font-bold text-indigo-600">Current Vitals</h3>
-            <button 
-              onClick={copyFromPrevious}
-              className="text-sm text-indigo-600 font-medium hover:underline flex items-center gap-1"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"/>
-              </svg>
-              Copy Previous
-            </button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

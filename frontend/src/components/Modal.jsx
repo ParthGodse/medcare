@@ -11,12 +11,12 @@ const Modal = ({ isOpen, onClose, onConfirm, title, message, type = 'confirm' })
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Backdrop */}
       <div 
-        className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm"
+        className="absolute inset-0 bg-white/30 backdrop-blur-md"
         onClick={onClose}
       ></div>
 
       {/* Modal */}
-      <div className="relative bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 p-6 transform transition-all">
+      <div className="relative bg-white rounded-2xl shadow-2xl shadow-indigo-500/50 max-w-md w-full mx-4 p-6 transform transition-all">
         {/* Icon */}
         <div className="flex justify-center mb-4">
           {isSuccess && (

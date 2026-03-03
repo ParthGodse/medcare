@@ -43,7 +43,7 @@ const NotesSection = ({ notes, onAdd }) => {
     setShowError(false);
     showToast('Note added successfully', 'success');
   };
-
+  
   return (
     <>
       <div className="bg-gray-50 rounded-xl p-6 border-2 border-gray-200">

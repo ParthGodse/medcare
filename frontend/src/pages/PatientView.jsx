@@ -98,13 +98,33 @@ const PatientView = () => {
   };
 
   const handleAddEntry = async (entry) => {
-    try {
-      const response = await entriesAPI.create(shiftId, entry);
-      setEntries([...entries, response.data]);
-    } catch (error) {
-      console.error('Error adding entry:', error);
+  try {
+    // If this is vitals, delete old vitals first (replace with latest)
+    if (entry.entry_type === 'vitals') {
+      const existingVitals = entries.filter(e => e.entry_type === 'vitals');
+      
+      if (existingVitals.length > 0) {
+        // Delete old vitals
+        await fetch(`http://localhost:8000/shifts/${shiftId}/entries/vitals`, {
+          method: 'DELETE',
+        });
+        console.log('Deleted old vitals, saving new ones');
+      }
     }
-  };
+    
+    // Save the new entry
+    const response = await entriesAPI.create(shiftId, entry);
+    
+    // Reload ALL entries from backend
+    const entriesResponse = await entriesAPI.getByShift(shiftId);
+    setEntries(entriesResponse.data);
+    
+    console.log('All entries after save:', entriesResponse.data);
+    
+  } catch (error) {
+    console.error('Error adding entry:', error);
+  }
+};
 
   const handleGenerateSummary = async () => {
   // Check if there are any entries

@@ -193,13 +193,14 @@ def generate_handoff(
     request: schemas.HandoffGenerate,
     db: Session = Depends(get_db)
 ):
-    # CHECK FOR EXISTING UNPUBLISHED HANDOFF AND DELETE IT
+    # CHECK FOR EXISTING UNPUBLISHED HANDOFF AND DELETE IT WITH ITS ENTRIES
     existing_handoff = db.query(models.Handoff).filter(
-        models.Handoff.shift_id == request.shift_id
+        models.Handoff.shift_id == request.shift_id,
+        models.Handoff.published_at == None  # Only delete unpublished
     ).first()
     
     if existing_handoff:
-        # If there's an existing handoff, delete it so we can regenerate
+        print(f"Deleting existing unpublished handoff: {existing_handoff.id}")
         db.delete(existing_handoff)
         db.commit()
     
@@ -301,6 +302,20 @@ def acknowledge_handoff(
         "acknowledged_by": nurse_name,
         "acknowledged_at": handoff.acknowledged_at
     }
+
+# Add this new endpoint to your main.py
+@app.delete("/shifts/{shift_id}/entries/{entry_type}")
+def delete_entries_by_type(shift_id: str, entry_type: str, db: Session = Depends(get_db)):
+    """Delete all entries of a specific type for a shift"""
+    
+    deleted_count = db.query(models.Entry).filter(
+        models.Entry.shift_id == shift_id,
+        models.Entry.entry_type == entry_type
+    ).delete()
+    
+    db.commit()
+    
+    return {"message": f"Deleted {deleted_count} {entry_type} entries"}
 
 #get shift's handoff
 @app.get("/shifts/{shift_id}/handoff")
