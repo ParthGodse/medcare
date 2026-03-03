@@ -8,6 +8,7 @@ import HandoffSummary from '../components/HandoffSummary';
 import PreviousHandoff from '../components/PreviousHandoff';
 import ShiftHistoryModal from '../components/ShiftHistoryModal';
 import { patientsAPI, shiftsAPI, entriesAPI, handoffAPI } from '../services/api';
+import Modal from '../components/Modal'; 
 
 const PatientView = () => {
   const { patientId } = useParams();
@@ -22,8 +23,15 @@ const PatientView = () => {
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [hasActiveShift, setHasActiveShift] = useState(false);
-  const [generatingHandoff, setGeneratingHandoff] = useState(false); // ADD THIS
-
+  const [generatingHandoff, setGeneratingHandoff] = useState(false); 
+  const [showValidationError, setShowValidationError] = useState(false);
+  const [modal, setModal] = useState({
+  isOpen: false,
+  type: 'success',
+  title: '',
+  message: '',
+  onConfirm: null
+});
   useEffect(() => {
     loadPatient();
   }, [patientId]);
@@ -99,34 +107,111 @@ const PatientView = () => {
   };
 
   const handleGenerateSummary = async () => {
-  setGeneratingHandoff(true); // ADD THIS
+  // Check if there are any entries
+  if (entries.length === 0) {
+    setShowValidationError(true);
+    setModal({
+      isOpen: true,
+      type: 'error',
+      title: 'No Data Entered',
+      message: 'Please enter at least some vitals, medications, or notes before generating a handoff.',
+      onConfirm: null
+    });
+    setActiveTab('entry');
+    
+    // Auto-clear validation error after 5 seconds
+    setTimeout(() => setShowValidationError(false), 5000);
+    return;
+  }
+
+  // Check if there are vitals entries
+  const hasVitals = entries.some(e => e.entry_type === 'vitals');
+  
+  if (!hasVitals) {
+    setShowValidationError(true);
+    setModal({
+      isOpen: true,
+      type: 'error',
+      title: 'Missing Vitals',
+      message: 'Please enter at least one set of vitals before generating a handoff.\n\nVitals are required for clinical handoffs.',
+      onConfirm: null
+    });
+    setActiveTab('entry');
+    
+    // Auto-clear validation error after 5 seconds
+    setTimeout(() => setShowValidationError(false), 5000);
+    return;
+  }
+
+  // Clear validation error if user had one before
+  setShowValidationError(false);
+
+  // Proceed with generation
+  setGeneratingHandoff(true);
   try {
     const response = await handoffAPI.generate(shiftId);
     setHandoff(response.data);
     setActiveTab('summary');
+    
+    setModal({
+      isOpen: true,
+      type: 'success',
+      title: 'Handoff Generated',
+      message: 'AI handoff summary has been generated successfully!',
+      onConfirm: null
+    });
   } catch (error) {
     console.error('Error generating handoff:', error);
-    alert('❌ Error generating handoff. Please try again.');
+    setModal({
+      isOpen: true,
+      type: 'error',
+      title: 'Generation Failed',
+      message: 'Error generating handoff. Please try again.',
+      onConfirm: null
+    });
   } finally {
-    setGeneratingHandoff(false); // ADD THIS
+    setGeneratingHandoff(false);
   }
 };
 
   const handlePublish = async () => {
-    if (!handoff || !handoff.id) {
-      alert('Please generate a handoff first');
-      return;
-    }
+  if (!handoff || !handoff.id) {
+    setModal({
+      isOpen: true,
+      type: 'error',
+      title: 'Error',
+      message: 'Please generate a handoff first',
+      onConfirm: null
+    });
+    return;
+  }
 
-    try {
-      const response = await handoffAPI.publish(handoff.id);
-      alert(`✅ Handoff published successfully!`);
+  try {
+    const response = await handoffAPI.publish(handoff.id);
+    
+    setModal({
+      isOpen: true,
+      type: 'success',
+      title: 'Handoff Published',
+      message: 'Handoff has been published successfully!',
+      onConfirm: null
+    });
+    
+    // Navigate after short delay
+    setTimeout(() => {
       navigate('/');
-    } catch (error) {
-      console.error('Error publishing handoff:', error);
-      alert('❌ Error publishing handoff. Please try again.');
-    }
-  };
+    }, 1500);
+  } catch (error) {
+    console.error('Error publishing handoff:', error);
+    setModal({
+      isOpen: true,
+      type: 'error',
+      title: 'Publish Failed',
+      message: 'Error publishing handoff. Please try again.',
+      onConfirm: null
+    });
+  }
+};
 
   const handleDeleteHandoff = async (handoffId) => {
     try {
@@ -252,7 +337,7 @@ const PatientView = () => {
                 <div className="p-6">
                   {activeTab === 'entry' ? (
                     <div className="space-y-6">
-                      <VitalsForm onSubmit={handleAddEntry} entries={entries} />
+                      <VitalsForm onSubmit={handleAddEntry} entries={entries} showError={showValidationError} />
                       <MedicationList medications={medications} onAdd={handleAddEntry} />
                       <NotesSection notes={notes} onAdd={handleAddEntry} />
                     </div>
@@ -351,6 +436,14 @@ const PatientView = () => {
         shifts={shiftHistory}
         onDelete={handleDeleteHandoff}
         onRefresh={loadPatient}
+      />
+      <Modal
+        isOpen={modal.isOpen}
+        onClose={() => setModal({ ...modal, isOpen: false })}
+        onConfirm={modal.onConfirm}
+        title={modal.title}
+        message={modal.message}
+        type={modal.type}
       />
     </div>
   );

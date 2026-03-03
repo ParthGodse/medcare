@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { patientsAPI } from '../services/api';
+import Modal from '../components/Modal';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -8,9 +9,18 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [currentTime, setCurrentTime] = useState(new Date());
+  
+  // Modal state
+  const [modal, setModal] = useState({
+    isOpen: false,
+    type: 'confirm',
+    title: '',
+    message: '',
+    onConfirm: null
+  });
 
   useEffect(() => {
-    loadPatients();
+    fetchPatients();
     
     const timer = setInterval(() => {
       setCurrentTime(new Date());
@@ -19,43 +29,63 @@ const Dashboard = () => {
     return () => clearInterval(timer);
   }, []);
 
-  const handleDeletePatient = async (patientId, patientName) => {
-  const confirmed = window.confirm(
-    `Are you sure you want to delete ${patientName}?\n\nThis will permanently delete:\n• Patient record\n• All shifts\n• All handoffs\n• All entries\n\nThis action cannot be undone.`
-  );
-
-  if (!confirmed) return;
-
-  try {
-    // Only call the patient shifts delete endpoint
-    // This already deletes everything including the patient
-    const response = await fetch(`http://localhost:8000/patients/${patientId}/shifts`, {
-      method: 'DELETE',
-    });
-    
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.detail || 'Failed to delete patient');
-    }
-
-    // Refresh patients list immediately
-    fetchPatients();
-    
-  } catch (error) {
-    console.error('Error deleting patient:', error);
-    alert(`❌ Error: ${error.message}`);
-  }
-};
-  const loadPatients = async () => {
-    setLoading(true);
+  const fetchPatients = async () => {
     try {
-      const response = await patientsAPI.getAll();
-      setPatients(response.data);
+      setLoading(true);
+      const response = await fetch('http://localhost:8000/patients');
+      const data = await response.json();
+      setPatients(data);
     } catch (error) {
-      console.error('Error loading patients:', error);
+      console.error('Error fetching patients:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleDeletePatient = async (patientId, patientName) => {
+    setModal({
+      isOpen: true,
+      type: 'confirm',
+      title: 'Delete Patient?',
+      message: `Are you sure you want to delete ${patientName}?\n\nThis will permanently delete:\n• Patient record\n• All shifts\n• All handoffs\n• All entries\n\nThis action cannot be undone.`,
+      onConfirm: async () => {
+        // Close confirm modal first
+        setModal({ ...modal, isOpen: false });
+        
+        try {
+          const response = await fetch(`http://localhost:8000/patients/${patientId}/shifts`, {
+            method: 'DELETE',
+          });
+          
+          if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Failed to delete patient');
+          }
+
+          // Refresh patients list
+          await fetchPatients();
+
+          // Show success modal
+          setModal({
+            isOpen: true,
+            type: 'success',
+            title: 'Patient Deleted',
+            message: `${patientName} has been successfully deleted.`,
+            onConfirm: null
+          });
+          
+        } catch (error) {
+          console.error('Error deleting patient:', error);
+          setModal({
+            isOpen: true,
+            type: 'error',
+            title: 'Delete Failed',
+            message: `Failed to delete patient: ${error.message}`,
+            onConfirm: null
+          });
+        }
+      }
+    });
   };
 
   const createDemoPatient = async () => {
@@ -72,6 +102,13 @@ const Dashboard = () => {
       navigate(`/patient/${response.data.id}`);
     } catch (error) {
       console.error('Error creating patient:', error);
+      setModal({
+        isOpen: true,
+        type: 'error',
+        title: 'Error',
+        message: 'Failed to create demo patient. Please try again.',
+        onConfirm: null
+      });
     }
   };
 
@@ -98,23 +135,6 @@ const Dashboard = () => {
     patient.mrn.toLowerCase().includes(searchQuery.toLowerCase()) ||
     patient.room.toLowerCase().includes(searchQuery.toLowerCase())
   );
-
-  const fetchPatients = async () => {
-  try {
-    setLoading(true);
-    const response = await fetch('http://localhost:8000/patients');
-    const data = await response.json();
-    setPatients(data);
-  } catch (error) {
-    console.error('Error fetching patients:', error);
-  } finally {
-    setLoading(false);
-  }
-};
-
-useEffect(() => {
-  fetchPatients();
-}, []); // Runs on mount
 
   return (
     <div className="min-h-screen bg-indigo-50 relative">
@@ -143,7 +163,7 @@ useEffect(() => {
                   currentShift.color === 'green' ? 'bg-green-500' : 'bg-purple-500'
                 } shadow-lg`}></div>
                 <span className="text-gray-700 text-sm font-semibold">
-                  {currentShift.icon} {currentShift.name}
+                  {currentShift.name}
                 </span>
               </div>
               <div className="text-gray-700 text-right hidden lg:block">
@@ -154,29 +174,6 @@ useEffect(() => {
           </div>
         </div>
       </header>
-
-      {/* Current Time Bar */}
-      {/* <div className="max-w-7xl mx-auto px-6 pt-6 relative z-10">
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="bg-indigo-600 p-2 rounded-xl shadow-sm">
-                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-              </div>
-              <span className="text-sm text-gray-700 font-medium">
-                Current: <strong className={`${currentShift.color === 'green' ? 'text-green-600' : 'text-purple-600'}`}>
-                  {currentShift.name}
-                </strong> • {currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
-              </span>
-            </div>
-            <div className="text-xs text-gray-500 font-medium hidden md:block">
-              Day: 7AM-7PM • Night: 7PM-7AM
-            </div>
-          </div>
-        </div>
-      </div> */}
 
       <div className="max-w-7xl mx-auto px-6 py-8 relative z-10">
         {/* Search and Actions Bar */}
@@ -243,7 +240,9 @@ useEffect(() => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-500 text-sm font-semibold uppercase tracking-wide">Pending Handoffs</p>
-                <p className="text-4xl font-bold text-indigo-600 mt-2">{patients.filter(p => p.handoff_status === 'generated').length}</p>
+                <p className="text-4xl font-bold text-indigo-600 mt-2">
+                  {patients.filter(p => p.handoff_status === 'generated').length}
+                </p>
               </div>
               <div className="bg-orange-500 p-4 rounded-2xl shadow-md">
                 <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -302,11 +301,13 @@ useEffect(() => {
               {filteredPatients.map((patient) => (
                 <div
                   key={patient.id}
-                  onClick={() => navigate(`/patient/${patient.id}`)}
-                  className="group border-2 border-gray-200 rounded-2xl p-6 hover:border-indigo-400 hover:shadow-lg transition-all cursor-pointer bg-white"
+                  className="group border-2 border-gray-200 rounded-2xl p-6 hover:border-indigo-400 hover:shadow-lg transition-all bg-white relative"
                 >
                   <div className="flex items-start justify-between">
-                    <div className="flex items-start gap-4 flex-1">
+                    <div 
+                      onClick={() => navigate(`/patient/${patient.id}`)}
+                      className="flex items-start gap-4 flex-1 cursor-pointer"
+                    >
                       {/* Avatar */}
                       <div className="bg-indigo-600 rounded-2xl w-16 h-16 flex items-center justify-center shrink-0 shadow-md">
                         <span className="text-white font-bold text-xl">
@@ -353,32 +354,31 @@ useEffect(() => {
                       </div>
                     </div>
 
-                    {/* Arrow */}
+                    {/* Right side - Arrow and Delete Button */}
                     <div className="flex flex-col items-center gap-3 shrink-0">
-                    <svg 
-                      onClick={() => navigate(`/patient/${patient.id}`)}
-                      className="w-7 h-7 text-gray-400 group-hover:text-indigo-600 group-hover:translate-x-2 transition-all cursor-pointer" 
-                      fill="none" 
-                      stroke="currentColor" 
-                      viewBox="0 0 24 24"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5l7 7-7 7"/>
-                    </svg>
-
-                    {/* Delete Button */}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeletePatient(patient.id, patient.name);
-                      }}
-                      className="p-2 text-red-400 bg-red-50 hover:text-red-700 hover:bg-red-100 rounded-lg transition-all"
-                      title="Delete patient"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                      <svg 
+                        onClick={() => navigate(`/patient/${patient.id}`)}
+                        className="w-7 h-7 text-gray-400 group-hover:text-indigo-600 group-hover:translate-x-2 transition-all cursor-pointer" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5l7 7-7 7"/>
                       </svg>
-                    </button>
-                  </div>
+
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeletePatient(patient.id, patient.name);
+                        }}
+                        className="p-2 text-red-400 bg-red-50 hover:text-red-700 hover:bg-red-100 rounded-lg transition-all"
+                        title="Delete patient"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                        </svg>
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -386,6 +386,16 @@ useEffect(() => {
           )}
         </div>
       </div>
+
+      {/* Modal */}
+      <Modal
+        isOpen={modal.isOpen}
+        onClose={() => setModal({ ...modal, isOpen: false })}
+        onConfirm={modal.onConfirm}
+        title={modal.title}
+        message={modal.message}
+        type={modal.type}
+      />
     </div>
   );
 };

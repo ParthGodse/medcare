@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { isAbnormalVital } from '../utils/helpers';
 
-const VitalsForm = ({ onSubmit, entries }) => {
+const VitalsForm = ({ onSubmit, entries, showError = false }) => {
   const [vitals, setVitals] = useState({
     bp_systolic: '',
     bp_diastolic: '',
@@ -87,6 +87,19 @@ const VitalsForm = ({ onSubmit, entries }) => {
   };
 
   return (
+    <div className={`bg-white rounded-2xl p-6 border-2 shadow-sm transition-all ${
+      showError ? 'border-red-500' : 'border-gray-200'
+    }`}>
+      {showError && (
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl flex items-center gap-2">
+          <svg className="w-5 h-5 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd"/>
+          </svg>
+          <span className="text-sm font-semibold text-red-700">
+            Please fill out all vitals before generating handoff
+          </span>
+        </div>
+      )}
     <div className="bg-white rounded-2xl p-6 border-2 border-gray-200 shadow-sm">
       <div className="flex justify-between items-center mb-6">
         <h3 className="text-xl font-bold text-indigo-600">Current Vitals</h3>
@@ -228,6 +241,7 @@ const VitalsForm = ({ onSubmit, entries }) => {
       >
         Save Vitals
       </button>
+    </div>
     </div>
   );
 };
