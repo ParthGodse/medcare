@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Toast from './Toast';
 
 const MedicationList = ({ medications, onAdd }) => {
   const [showForm, setShowForm] = useState(false);
@@ -7,36 +8,96 @@ const MedicationList = ({ medications, onAdd }) => {
     action: 'started',
     dose: '',
     time: '',
-    reason: ''
+    reason: '',
+    previousDose: ''
+  });
+  
+  const [errors, setErrors] = useState({
+    medication: false,
+    dose: false,
+    reason: false
   });
 
-  const handleAdd = () => {
-  if (!newMed.medication) {
-    alert('Please enter medication name');
-    return;
-  }
+  // Toast state
+  const [toast, setToast] = useState({
+    isVisible: false,
+    message: '',
+    type: 'success'
+  });
 
-  const medEntry = {
-    entry_type: 'med_change',
-    data: {
-      medication: newMed.medication,
-      action: newMed.action,  // Make sure this is exactly 'started', 'held', 'increased', etc.
-      dose: newMed.dose,
-      time: newMed.time,
-      reason: newMed.reason,
-      previousDose: newMed.previousDose || ''
-    },
-    is_critical: true
+  const showToast = (message, type = 'success') => {
+    setToast({ isVisible: true, message, type });
   };
 
-  console.log('Adding medication entry:', medEntry); // DEBUG
-  
-  onAdd(medEntry);
-  
-  setNewMed({ medication: '', action: 'started', dose: '', time: '', reason: '', previousDose: '' });
-  setShowForm(false);
-  alert('✓ Medication change added');
-};
+  const hideToast = () => {
+    setToast({ ...toast, isVisible: false });
+  };
+
+  const handleAdd = () => {
+    // Reset errors
+    const newErrors = {
+      medication: false,
+      dose: false,
+      reason: false
+    };
+
+    // Validate medication name
+    if (!newMed.medication.trim()) {
+      newErrors.medication = true;
+      showToast('Please enter medication name', 'error');
+      setErrors(newErrors);
+      setTimeout(() => setErrors({ medication: false, dose: false, reason: false }), 3000);
+      return;
+    }
+
+    // Validate dose (required for started, increased, decreased)
+    if ((newMed.action === 'started' || newMed.action === 'increased' || newMed.action === 'decreased') && !newMed.dose.trim()) {
+      newErrors.dose = true;
+      showToast('Please enter dose', 'error');
+      setErrors(newErrors);
+      setTimeout(() => setErrors({ medication: false, dose: false, reason: false }), 3000);
+      return;
+    }
+
+    // Validate reason (required for held or discontinued)
+    if ((newMed.action === 'held' || newMed.action === 'discontinued') && !newMed.reason.trim()) {
+      newErrors.reason = true;
+      showToast('Please enter reason for holding/discontinuing medication', 'error');
+      setErrors(newErrors);
+      setTimeout(() => setErrors({ medication: false, dose: false, reason: false }), 3000);
+      return;
+    }
+
+    const medEntry = {
+      entry_type: 'med_change',
+      data: {
+        medication: newMed.medication,
+        action: newMed.action,
+        dose: newMed.dose,
+        time: newMed.time,
+        reason: newMed.reason,
+        previousDose: newMed.previousDose || ''
+      },
+      is_critical: true
+    };
+
+    console.log('Adding medication entry:', medEntry);
+    
+    onAdd(medEntry);
+    
+    setNewMed({ medication: '', action: 'started', dose: '', time: '', reason: '', previousDose: '' });
+    setShowForm(false);
+    setErrors({ medication: false, dose: false, reason: false });
+    showToast('✓ Medication change added', 'success');
+  };
+
+  const handleInputChange = (field, value) => {
+    setNewMed({ ...newMed, [field]: value });
+    // Clear error when user starts typing
+    if (errors[field]) {
+      setErrors({ ...errors, [field]: false });
+    }
+  };
 
   // Helper function to get the correct styling based on action
   const getActionStyle = (action) => {
@@ -73,6 +134,14 @@ const MedicationList = ({ medications, onAdd }) => {
           iconColor: 'text-orange-600',
           label: 'Decreased'
         };
+      case 'discontinued':
+        return {
+          bgColor: 'bg-red-50',
+          borderColor: 'border-red-500',
+          icon: '×',
+          iconColor: 'text-red-600',
+          label: 'Discontinued'
+        };
       default:
         return {
           bgColor: 'bg-gray-50',
@@ -85,172 +154,207 @@ const MedicationList = ({ medications, onAdd }) => {
   };
 
   return (
-    <div className="bg-gray-50 rounded-xl p-6 border-2 border-gray-200">
-      <h3 className="text-xl font-bold text-gray-800 mb-4">Medication Changes</h3>
+    <>
+      <div className="bg-gray-50 rounded-xl p-6 border-2 border-gray-200">
+        <h3 className="text-xl font-bold text-gray-800 mb-4">Medication Changes</h3>
 
-      <div className="space-y-3 mb-3">
-        {medications.map((med, idx) => {
-          const style = getActionStyle(med.data.action);
-          
-          return (
-            <div
-              key={idx}
-              className={`flex items-start gap-3 p-3 rounded-lg border-l-4 ${style.bgColor} ${style.borderColor}`}
-            >
-              <span className={`text-xl mt-1 ${style.iconColor}`}>
-                {style.icon}
-              </span>
-              <div className="flex-1">
-                <p className="font-semibold text-gray-800">
-                  {style.label} {med.data.medication}
-                </p>
-                {med.data.dose && (
-                  <p className="text-sm text-gray-600">
-                    {med.data.dose}
-                    {med.data.time && ` @ ${med.data.time}`}
+        <div className="space-y-3 mb-3">
+          {medications.map((med, idx) => {
+            const style = getActionStyle(med.data.action);
+            
+            return (
+              <div
+                key={idx}
+                className={`flex items-start gap-3 p-3 rounded-lg border-l-4 ${style.bgColor} ${style.borderColor}`}
+              >
+                <span className={`text-xl mt-1 ${style.iconColor}`}>
+                  {style.icon}
+                </span>
+                <div className="flex-1">
+                  <p className="font-semibold text-gray-800">
+                    {style.label} {med.data.medication}
                   </p>
-                )}
-                {med.data.reason && (
-                  <p className="text-sm text-gray-600">
-                    Reason: {med.data.reason}
+                  {med.data.dose && (
+                    <p className="text-sm text-gray-600">
+                      {med.data.dose}
+                      {med.data.time && ` @ ${med.data.time}`}
+                    </p>
+                  )}
+                  {med.data.reason && (
+                    <p className="text-sm text-gray-600">
+                      Reason: {med.data.reason}
+                    </p>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {!showForm ? (
+          <button
+            onClick={() => setShowForm(true)}
+            className="w-full py-3 border-2 border-dashed border-indigo-600 text-indigo-600 font-semibold rounded-xl hover:bg-indigo-50 transition-colors"
+          >
+            + Add Medication Change
+          </button>
+        ) : (
+          <div className="border-2 border-indigo-600 rounded-xl p-4 bg-white">
+            <h4 className="font-semibold text-gray-800 mb-3">Add Medication Change</h4>
+            
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Medication Name *
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g., Vancomycin"
+                  value={newMed.medication}
+                  onChange={(e) => handleInputChange('medication', e.target.value)}
+                  className={`w-full px-3 py-2 border-2 rounded-lg focus:outline-none transition-all ${
+                    errors.medication
+                      ? 'border-red-500 focus:border-red-500'
+                      : 'border-gray-300 focus:border-indigo-600'
+                  }`}
+                />
+                {errors.medication && (
+                  <p className="text-xs text-red-600 mt-1 font-medium flex items-center gap-1">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd"/>
+                    </svg>
+                    Medication name is required
                   </p>
                 )}
               </div>
-              <button 
-                onClick={() => {
-                  // Remove this medication
-                  const updatedMeds = medications.filter((_, i) => i !== idx);
-                  // You'd need to pass a remove handler from parent
-                }}
-                className="text-gray-400 hover:text-red-600 transition-colors"
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Action *
+                </label>
+                <select
+                  value={newMed.action}
+                  onChange={(e) => handleInputChange('action', e.target.value)}
+                  className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-indigo-600 focus:outline-none"
+                >
+                  <option value="started">Started</option>
+                  <option value="held">Held</option>
+                  <option value="increased">Increased</option>
+                  <option value="decreased">Decreased</option>
+                  <option value="discontinued">Discontinued</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Dose {(newMed.action === 'started' || newMed.action === 'increased' || newMed.action === 'decreased') && '*'}
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g., 1g IV"
+                  value={newMed.dose}
+                  onChange={(e) => handleInputChange('dose', e.target.value)}
+                  className={`w-full px-3 py-2 border-2 rounded-lg focus:outline-none transition-all ${
+                    errors.dose
+                      ? 'border-red-500 focus:border-red-500'
+                      : 'border-gray-300 focus:border-indigo-600'
+                  }`}
+                />
+                {errors.dose && (
+                  <p className="text-xs text-red-600 mt-1 font-medium flex items-center gap-1">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd"/>
+                    </svg>
+                    Dose is required
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Time
+                </label>
+                <input
+                  type="time"
+                  value={newMed.time}
+                  onChange={(e) => handleInputChange('time', e.target.value)}
+                  className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-indigo-600 focus:outline-none"
+                />
+              </div>
+
+              {(newMed.action === 'held' || newMed.action === 'discontinued') && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Reason *
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g., Hypotension"
+                    value={newMed.reason}
+                    onChange={(e) => handleInputChange('reason', e.target.value)}
+                    className={`w-full px-3 py-2 border-2 rounded-lg focus:outline-none transition-all ${
+                      errors.reason
+                        ? 'border-red-500 focus:border-red-500'
+                        : 'border-gray-300 focus:border-indigo-600'
+                    }`}
+                  />
+                  {errors.reason && (
+                    <p className="text-xs text-red-600 mt-1 font-medium flex items-center gap-1">
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd"/>
+                      </svg>
+                      Reason is required when holding/discontinuing medication
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {(newMed.action === 'increased' || newMed.action === 'decreased') && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Previous Dose
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g., 20mg"
+                    value={newMed.previousDose || ''}
+                    onChange={(e) => handleInputChange('previousDose', e.target.value)}
+                    className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-indigo-600 focus:outline-none"
+                  />
+                </div>
+              )}
+            </div>
+
+            <div className="flex gap-2 mt-4">
+              <button
+                onClick={handleAdd}
+                className="flex-1 py-2 bg-indigo-600 text-white! font-semibold rounded-lg hover:bg-indigo-700 transition-colors"
               >
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd"/>
-                </svg>
+                Add Medication
+              </button>
+              <button
+                onClick={() => {
+                  setShowForm(false);
+                  setNewMed({ medication: '', action: 'started', dose: '', time: '', reason: '', previousDose: '' });
+                  setErrors({ medication: false, dose: false, reason: false });
+                }}
+                className="flex-1 py-2 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition-colors"
+              >
+                Cancel
               </button>
             </div>
-          );
-        })}
+          </div>
+        )}
       </div>
 
-      {!showForm ? (
-        <button
-          onClick={() => setShowForm(true)}
-          className="w-full py-3 border-2 border-dashed border-indigo-600 text-indigo-600 font-semibold rounded-xl hover:bg-indigo-50 transition-colors"
-        >
-          + Add Medication Change
-        </button>
-      ) : (
-        <div className="border-2 border-indigo-600 rounded-xl p-4 bg-white">
-          <h4 className="font-semibold text-gray-800 mb-3">Add Medication Change</h4>
-          
-          <div className="space-y-3">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Medication Name *
-              </label>
-              <input
-                type="text"
-                placeholder="e.g., Vancomycin"
-                value={newMed.medication}
-                onChange={(e) => setNewMed({ ...newMed, medication: e.target.value })}
-                className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-indigo-600 focus:outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Action *
-              </label>
-              <select
-                value={newMed.action}
-                onChange={(e) => setNewMed({ ...newMed, action: e.target.value })}
-                className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-indigo-600 focus:outline-none"
-              >
-                <option value="started">Started</option>
-                <option value="held">Held</option>
-                <option value="increased">Increased</option>
-                <option value="decreased">Decreased</option>
-                <option value="discontinued">Discontinued</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Dose {newMed.action !== 'held' && '*'}
-              </label>
-              <input
-                type="text"
-                placeholder="e.g., 1g IV"
-                value={newMed.dose}
-                onChange={(e) => setNewMed({ ...newMed, dose: e.target.value })}
-                className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-indigo-600 focus:outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Time
-              </label>
-              <input
-                type="time"
-                value={newMed.time}
-                onChange={(e) => setNewMed({ ...newMed, time: e.target.value })}
-                className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-indigo-600 focus:outline-none"
-              />
-            </div>
-
-            {(newMed.action === 'held' || newMed.action === 'discontinued') && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Reason *
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g., Hypotension"
-                  value={newMed.reason}
-                  onChange={(e) => setNewMed({ ...newMed, reason: e.target.value })}
-                  className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-indigo-600 focus:outline-none"
-                />
-              </div>
-            )}
-
-            {(newMed.action === 'increased' || newMed.action === 'decreased') && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Previous Dose
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g., 20mg"
-                  value={newMed.previousDose || ''}
-                  onChange={(e) => setNewMed({ ...newMed, previousDose: e.target.value })}
-                  className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-indigo-600 focus:outline-none"
-                />
-              </div>
-            )}
-          </div>
-
-          <div className="flex gap-2 mt-4">
-            <button
-              onClick={handleAdd}
-              className="flex-1 py-2 bg-indigo-600 text-white! font-semibold rounded-lg hover:bg-indigo-700 transition-colors"
-            >
-              Add Medication
-            </button>
-            <button
-              onClick={() => {
-                setShowForm(false);
-                setNewMed({ medication: '', action: 'started', dose: '', time: '', reason: '' });
-              }}
-              className="flex-1 py-2 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition-colors"
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
+      {/* Toast Notification */}
+      <Toast
+        message={toast.message}
+        type={toast.type}
+        isVisible={toast.isVisible}
+        onClose={hideToast}
+      />
+    </>
   );
 };
 
