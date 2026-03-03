@@ -31,7 +31,7 @@ const PublishModal = ({ isOpen, onClose, onConfirm, handoff }) => {
           {/* Preview */}
           <div className="mb-6 p-4 bg-indigo-50 rounded-lg">
             <p className="text-sm text-indigo-800">
-              <strong>📋 Review Summary:</strong> This handoff will be saved to the patient record and sent to the incoming nurse.
+              <strong>Review Summary:</strong> This handoff will be saved to the patient record and sent to the incoming nurse.
             </p>
           </div>
 
@@ -39,7 +39,7 @@ const PublishModal = ({ isOpen, onClose, onConfirm, handoff }) => {
           <div className="space-y-4 mb-6">
             {handoff.critical_items.length > 0 && (
               <div className="border-l-4 border-red-500 pl-4">
-                <h3 className="font-bold text-red-700 mb-2">🔴 CRITICAL</h3>
+                <h3 className="font-bold text-red-700 mb-2">CRITICAL</h3>
                 <ul className="text-sm space-y-1">
                   {handoff.critical_items.map((item, idx) => (
                     <li key={idx}>• {item}</li>
@@ -50,7 +50,7 @@ const PublishModal = ({ isOpen, onClose, onConfirm, handoff }) => {
 
             {handoff.pending_tasks.length > 0 && (
               <div className="border-l-4 border-orange-500 pl-4">
-                <h3 className="font-bold text-orange-700 mb-2">⏰ PENDING</h3>
+                <h3 className="font-bold text-orange-700 mb-2">PENDING TASKS</h3>
                 <ul className="text-sm space-y-1">
                   {handoff.pending_tasks.map((item, idx) => (
                     <li key={idx}>• {item}</li>

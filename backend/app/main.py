@@ -48,10 +48,45 @@ def get_patient(patient_id: str, db: Session = Depends(get_db)):
     return patient
 
 #list all patients
-@app.get("/patients", response_model=List[schemas.PatientResponse])
+#list all patients with active shift and handoff status
+@app.get("/patients")
 def list_patients(db: Session = Depends(get_db)):
     patients = db.query(models.Patient).all()
-    return patients
+    
+    result = []
+    for patient in patients:
+        # Get active shift for this patient
+        active_shift = db.query(models.Shift).filter(
+            models.Shift.patient_id == patient.id,
+            models.Shift.status == "active"
+        ).first()
+        
+        # Get handoff status if active shift exists
+        handoff_status = None
+        if active_shift:
+            handoff = db.query(models.Handoff).filter(
+                models.Handoff.shift_id == active_shift.id
+            ).first()
+            
+            if handoff:
+                if handoff.published_at is not None:
+                    handoff_status = "published"
+                else:
+                    handoff_status = "generated"
+        
+        result.append({
+            "id": patient.id,
+            "name": patient.name,
+            "dob": patient.dob,
+            "room": patient.room,
+            "mrn": patient.mrn,
+            "allergies": patient.allergies,
+            "code_status": patient.code_status,
+            "active_shift_id": active_shift.id if active_shift else None,
+            "handoff_status": handoff_status
+        })
+    
+    return result
 
 # Add this to your main.py
 @app.delete("/patients/{patient_id}")

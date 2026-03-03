@@ -228,7 +228,7 @@ useEffect(() => {
               <div>
                 <p className="text-gray-500 text-sm font-semibold uppercase tracking-wide">Active Shifts</p>
                 <p className="text-4xl font-bold text-indigo-600 mt-2">
-                  {patients.length}
+                  {patients.filter(p => p.active_shift_id).length}
                 </p>
               </div>
               <div className="bg-green-500 p-4 rounded-2xl shadow-md">
@@ -243,7 +243,7 @@ useEffect(() => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-500 text-sm font-semibold uppercase tracking-wide">Pending Handoffs</p>
-                <p className="text-4xl font-bold text-indigo-600 mt-2">0</p>
+                <p className="text-4xl font-bold text-indigo-600 mt-2">{patients.filter(p => p.handoff_status === 'generated').length}</p>
               </div>
               <div className="bg-orange-500 p-4 rounded-2xl shadow-md">
                 <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">

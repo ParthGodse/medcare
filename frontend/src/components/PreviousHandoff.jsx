@@ -42,7 +42,7 @@ const PreviousHandoff = ({ handoffData, onViewHistory }) => {
       <div className="space-y-4">
         {handoff.critical_items && handoff.critical_items.length > 0 && handoff.critical_items[0] !== "No critical alerts" && (
           <div className="bg-white rounded-xl p-4 border-l-4 border-red-500 shadow-sm">
-            <h4 className="font-bold text-red-700 text-sm mb-2">🔴 CRITICAL ITEMS</h4>
+            <h4 className="font-bold text-red-700 text-sm mb-2">CRITICAL ITEMS</h4>
             <ul className="space-y-1 text-sm">
               {handoff.critical_items.map((item, idx) => (
                 <li key={idx} className="text-gray-700">• {item}</li>
@@ -53,7 +53,7 @@ const PreviousHandoff = ({ handoffData, onViewHistory }) => {
 
         {handoff.pending_tasks && handoff.pending_tasks.length > 0 && handoff.pending_tasks[0] !== "No pending tasks" && handoff.pending_tasks[0] !== "All tasks completed" && handoff.pending_tasks[0] !== "No outstanding tasks identified" && (
           <div className="bg-white rounded-xl p-4 border-l-4 border-orange-500 shadow-sm">
-            <h4 className="font-bold text-orange-700 text-sm mb-2">⏰ PENDING TASKS</h4>
+            <h4 className="font-bold text-orange-700 text-sm mb-2">PENDING TASKS</h4>
             <ul className="space-y-1 text-sm">
               {handoff.pending_tasks.map((task, idx) => (
                 <li key={idx} className="text-gray-700">• {task}</li>
@@ -64,7 +64,7 @@ const PreviousHandoff = ({ handoffData, onViewHistory }) => {
 
         {handoff.stable_items && handoff.stable_items.length > 0 && (
           <div className="bg-white rounded-xl p-4 border-l-4 border-green-500 shadow-sm">
-            <h4 className="font-bold text-green-700 text-sm mb-2">✓ STABLE</h4>
+            <h4 className="font-bold text-green-700 text-sm mb-2">STABLE</h4>
             <ul className="space-y-1 text-sm">
               {handoff.stable_items.map((item, idx) => (
                 <li key={idx} className="text-gray-700">• {item}</li>
@@ -75,7 +75,7 @@ const PreviousHandoff = ({ handoffData, onViewHistory }) => {
 
         {handoff.narrative && handoff.narrative !== "No additional notes documented this shift." && (
           <div className="bg-white rounded-xl p-4 border-l-4 border-purple-500 shadow-sm">
-            <h4 className="font-bold text-purple-700 text-sm mb-2">📋 NOTES</h4>
+            <h4 className="font-bold text-purple-700 text-sm mb-2">NOTES</h4>
             <p className="text-sm text-gray-700">{handoff.narrative}</p>
           </div>
         )}
