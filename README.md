@@ -2,7 +2,7 @@
 
 A hybrid AI system that reduces nurse shift-change documentation time from 20+ minutes to under 5 seconds. Combines rule-based critical detection with LLM-powered summarization for reliable, intelligent clinical handoffs.
 
-![MedSync Dashboard](./screenshots/dashboard.png)
+![alt text](medsync1.jpg)
 
 ## Features
 
